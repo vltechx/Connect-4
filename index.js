@@ -69,8 +69,11 @@ document.addEventListener('DOMContentLoaded', ()=> { // Arrow function
         })(i);
     }
 
-    function setResult(strCellPlayers)
+    function updateResults(strCellPlayers)
     {
+        if(!strCellPlayers.length)
+            return;
+
         if(currentPlayer === 1 && strCellPlayers.includes("Player1Player1Player1Player1") ||
            currentPlayer === 2 && strCellPlayers.includes("Player2Player2Player2Player2"))
                 result.innerHTML = "Player" + currentPlayer + " wins!";
@@ -78,7 +81,7 @@ document.addEventListener('DOMContentLoaded', ()=> { // Arrow function
 
     /**
      * This function is called on each user action and try to see if this player is winner by 
-     * concatinating player tags in the current row/column/forward/reverse diagonal cells.
+     * concatinating player tags in the current row/column/forward diag/reverse diagonal cells.
      */
     function checkWinner()
     {
@@ -87,48 +90,53 @@ document.addEventListener('DOMContentLoaded', ()=> { // Arrow function
 
         let row = cells[iCurFilledCell].dataset.row;
         let col = cells[iCurFilledCell].dataset.column;
+        row = parseInt(row);
+        col = parseInt(col);
 
         console.log("Filling up emtpty cell "+ row + col);
 
-        let strCellPlayers = "";
+        let strRowPlayers="";
         // check the current row for win
         for (var i = 0; i < GRID_COLS; i++)
         {
-            let index = parseInt(row * GRID_COLS) + parseInt(i);
-            strCellPlayers += cells[index].className;
-            console.log("strCellPlayers "+ strCellPlayers);
+            let index = row * GRID_COLS + i;
+            let cellTag = cells[index].className;
+            strRowPlayers += cellTag.length ? cellTag : "-";
+            console.log("strCellPlayers "+ strRowPlayers);
 
-            setResult(strCellPlayers);
-            if(result.innerHTML)
+            if(updateResults(strRowPlayers))
                 return;
         }
-        strCellPlayers = "";
+        let strColPlayers="";
         // check the current column for win
         for (let i = 0; i < GRID_ROWS; i++)
         {
-            let index = parseInt(col) + parseInt(i*GRID_COLS);
+            let index = col + i*GRID_COLS;
             let cellTag = cells[index].className;
-            strCellPlayers += cellTag.length ? cellTag : "-";
-            console.log("strCellPlayers "+ strCellPlayers);
+            strColPlayers += cellTag.length ? cellTag : "-";
+            console.log("strCellPlayers "+ strColPlayers);
 
-            setResult(strCellPlayers);
-            if(result.innerHTML)
+            if(updateResults(strColPlayers))
                 return;
         }
-        strCellPlayers = "";
-        // check the right diagonal for win
-        for (let i = 0; i < GRID_ROWS; i++)
+        let strFwdDiagPlayers="", strBwdDiagPlayers="";
+        // check the diagonals for win
+        for (let i = 0; i < GRID_ROWS; i++) 
         {
-            if(row < 3)
-                return;
-            let index = parseInt(row) + parseInt(col);
-            let cellTag = cells[index].className;
-            strCellPlayers += cellTag.length ? cellTag : "-";
-            console.log("strCellPlayers "+ strCellPlayers);
+            for (let j = 0; j < GRID_COLS; j++) 
+            {
+                let index = i*7+j; // conver row x col to index
+                
+                // Forward diagonal - top left to bottom right
+                if (i - j == row - col)
+                    strFwdDiagPlayers += cells[index].className;
 
-            setResult(strCellPlayers);
-            if(result.innerHTML)
-                return;
+                // Backward diagonal - top right to bottom left
+                if (i + j == row + col)
+                    strBwdDiagPlayers += cells[index].className;
+            }
         }
+        if (updateResults(strFwdDiagPlayers) || updateResults(strBwdDiagPlayers))
+            return;
     }
 })
